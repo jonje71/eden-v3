@@ -1,11 +1,4 @@
 name = "eden-v3"
+pages_build_output_dir = "./dist"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
-
-# This tells Wrangler to deploy the Vite build output
-# as a Cloudflare Pages static site
-[site]
-bucket = "./dist"
-
-# Pages project configuration
-pages_build_output_dir = "./dist"
