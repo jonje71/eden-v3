@@ -1,0 +1,23 @@
+{
+  "name": "eden-v3",
+  "version": "3.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host --port 3000",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@google/genai": "^2.13.0",
+    "@supabase/supabase-js": "^2.49.1",
+    "dexie": "^4.0.10",
+    "dotenv": "^16.4.7",
+    "html5-qrcode": "^2.3.8",
+    "lucide": "^0.479.0",
+    "qrcode": "^1.5.4",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "vite": "^6.2.0"
+  }
+}
