@@ -1,0 +1,123 @@
+/* 
+  Animations for EDEN v3 Themes
+  Defines keyframes and structural styles for logo overlays
+*/
+
+/* Core Container Setup */
+.logo-overlay-container {
+  position: relative;
+  display: inline-block;
+}
+
+.theme-particles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.theme-particle {
+  position: absolute;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* =========================================
+   HONEYBEE THEME
+========================================= */
+[data-theme="honeybee"] .particle-bee {
+  animation: orbit-bee 6s linear infinite;
+  transform-origin: center center;
+}
+[data-theme="honeybee"] .particle-bee:nth-child(2) {
+  animation-delay: -2s;
+  font-size: 0.9rem;
+  animation-duration: 4s;
+  animation-direction: reverse;
+}
+[data-theme="honeybee"] .particle-bee:nth-child(3) {
+  animation-delay: -4s;
+  font-size: 1rem;
+  animation-duration: 5s;
+}
+
+@keyframes orbit-bee {
+  0% { transform: rotate(0deg) translateX(35px) rotate(0deg); }
+  100% { transform: rotate(360deg) translateX(35px) rotate(-360deg); }
+}
+
+/* =========================================
+   GLASSY AVOCADO THEME
+========================================= */
+[data-theme="avocado"] .particle-avocado {
+  bottom: -5px;
+  animation: bounce-avocado 2s infinite ease-in-out;
+}
+[data-theme="avocado"] .particle-avocado:nth-child(1) { left: -10px; animation-delay: 0s; }
+[data-theme="avocado"] .particle-avocado:nth-child(2) { right: -10px; animation-delay: 1s; font-size: 0.9rem; }
+
+@keyframes bounce-avocado {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(15deg); }
+}
+
+/* =========================================
+   FUTURISTIC THEME
+========================================= */
+[data-theme="futuristic"] .particle-robot {
+  animation: hover-robot 4s infinite ease-in-out;
+  left: 50%;
+  margin-left: -10px;
+  top: -15px;
+}
+[data-theme="futuristic"] .particle-drone {
+  font-size: 0.8rem;
+  animation: scan-drone 5s infinite cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes hover-robot {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes scan-drone {
+  0% { left: -20px; top: 10%; transform: scaleX(1); }
+  45% { left: 100%; top: 30%; transform: scaleX(1); }
+  50% { left: 100%; top: 30%; transform: scaleX(-1); }
+  95% { left: -20px; top: 70%; transform: scaleX(-1); }
+  100% { left: -20px; top: 10%; transform: scaleX(1); }
+}
+
+/* =========================================
+   ESTUARY THEME
+========================================= */
+[data-theme="estuary"] .particle-firefly {
+  font-size: 0.6rem;
+  color: #a4e044;
+  text-shadow: 0 0 10px #a4e044;
+  animation: firefly-glow 3s infinite alternate;
+}
+[data-theme="estuary"] .particle-leaf {
+  font-size: 0.8rem;
+  animation: fall-leaf 6s infinite linear;
+}
+
+[data-theme="estuary"] .particle-firefly:nth-child(1) { top: 10%; left: -10%; animation-duration: 2s; }
+[data-theme="estuary"] .particle-firefly:nth-child(2) { bottom: 10%; right: -10%; animation-duration: 3.5s; animation-delay: 1s; }
+[data-theme="estuary"] .particle-leaf:nth-child(3) { top: -20px; left: 20%; }
+[data-theme="estuary"] .particle-leaf:nth-child(4) { top: -20px; right: 20%; animation-delay: 3s; animation-duration: 8s;}
+
+@keyframes firefly-glow {
+  0% { opacity: 0.2; transform: scale(0.8) translate(0, 0); }
+  100% { opacity: 1; transform: scale(1.2) translate(10px, -15px); }
+}
+@keyframes fall-leaf {
+  0% { transform: translateY(-10px) rotate(0deg) translateX(0); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(60px) rotate(360deg) translateX(20px); opacity: 0; }
+}

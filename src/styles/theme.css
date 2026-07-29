@@ -63,6 +63,99 @@
   --text-muted: #a1b89e;
 }
 
+/* Theme Variant 3: Honeybee */
+[data-theme="honeybee"] {
+  --bg-dark: #1f1606;
+  --bg-gradient: radial-gradient(circle at 50% 0%, #3a270a 0%, #1f1606 80%);
+  --glass-bg: rgba(43, 31, 10, 0.7);
+  --glass-bg-hover: rgba(66, 48, 16, 0.85);
+  --glass-border: rgba(255, 183, 3, 0.22);
+  --glass-border-bright: rgba(255, 183, 3, 0.6);
+  --accent-gold: #ffb703;
+  --accent-gold-glow: 0 0 20px rgba(255, 183, 3, 0.3);
+  --accent-green: #fb8500;
+  --accent-cyan: #ffb703;
+  --btn-gradient: linear-gradient(135deg, #ffb703 0%, #fb8500 100%);
+  --text-main: #fff8e7;
+  --text-muted: #d4c4a8;
+}
+
+/* Theme Variant 4: Futuristic */
+[data-theme="futuristic"] {
+  --bg-dark: #050510;
+  --bg-gradient: radial-gradient(circle at 50% 0%, #1a0b2e 0%, #050510 80%);
+  --glass-bg: rgba(16, 11, 35, 0.75);
+  --glass-bg-hover: rgba(26, 18, 55, 0.85);
+  --glass-border: rgba(0, 240, 255, 0.22);
+  --glass-border-bright: rgba(0, 240, 255, 0.6);
+  --accent-gold: #00f0ff;
+  --accent-gold-glow: 0 0 20px rgba(0, 240, 255, 0.4);
+  --accent-green: #bf00ff;
+  --accent-cyan: #00f0ff;
+  --btn-gradient: linear-gradient(135deg, #00f0ff 0%, #bf00ff 100%);
+  --text-main: #e2fcfc;
+  --text-muted: #8ca5c4;
+}
+
+/* Theme Variant 5: Estuary (Magical) */
+[data-theme="estuary"] {
+  --bg-dark: #011116;
+  --bg-gradient: radial-gradient(circle at 50% 0%, #03322d 0%, #011116 80%);
+  --glass-bg: rgba(4, 30, 28, 0.75);
+  --glass-bg-hover: rgba(6, 45, 42, 0.85);
+  --glass-border: rgba(100, 255, 218, 0.22);
+  --glass-border-bright: rgba(100, 255, 218, 0.6);
+  --accent-gold: #64ffda;
+  --accent-gold-glow: 0 0 20px rgba(100, 255, 218, 0.3);
+  --accent-green: #38bdf8;
+  --accent-cyan: #38bdf8;
+  --btn-gradient: linear-gradient(135deg, #64ffda 0%, #10b981 100%);
+  --text-main: #eafcf9;
+  --text-muted: #88c0b9;
+}
+
+/* Theme Variant 6: Classic (Minimal Light/Glassy) */
+[data-theme="classic"] {
+  --bg-dark: #f0f4f8;
+  --bg-gradient: radial-gradient(circle at 50% 0%, #ffffff 0%, #f0f4f8 80%);
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-bg-hover: rgba(255, 255, 255, 1);
+  --glass-border: rgba(15, 23, 42, 0.1);
+  --glass-border-bright: rgba(15, 23, 42, 0.3);
+  --accent-gold: #1d4ed8;
+  --accent-gold-glow: 0 0 20px rgba(29, 78, 216, 0.15);
+  --accent-green: #0f172a;
+  --accent-cyan: #2563eb;
+  --btn-gradient: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+  --text-main: #0f172a;
+  --text-muted: #475569;
+}
+/* Ensure Classic text inside input and modal overrides */
+[data-theme="classic"] .cyber-input, [data-theme="classic"] .modal-card, [data-theme="classic"] .sidebar-item {
+  color: #0f172a;
+}
+[data-theme="classic"] .cyber-input { background: rgba(255, 255, 255, 0.8); border: 1px solid rgba(15, 23, 42, 0.2); }
+[data-theme="classic"] .cyber-input:focus { background: #fff; }
+[data-theme="classic"] .cyber-btn-glass { color: #1d4ed8; border-color: rgba(29, 78, 216, 0.3); }
+[data-theme="classic"] .section-title, [data-theme="classic"] .student-name { color: #0f172a; }
+
+/* Theme Variant 7: Dark Theme (Battery Saver) */
+[data-theme="dark"] {
+  --bg-dark: #000000;
+  --bg-gradient: none;
+  --glass-bg: #111111;
+  --glass-bg-hover: #1a1a1a;
+  --glass-border: #333333;
+  --glass-border-bright: #666666;
+  --accent-gold: #ffffff;
+  --accent-gold-glow: 0 0 15px rgba(255, 255, 255, 0.2);
+  --accent-green: #aaaaaa;
+  --accent-cyan: #dddddd;
+  --btn-gradient: linear-gradient(135deg, #333333 0%, #111111 100%);
+  --text-main: #ffffff;
+  --text-muted: #888888;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -687,4 +780,16 @@ body {
 
 .modal-overlay.open .modal-card {
   transform: scale(1);
+}
+
+/* Responsive Table Wrappers */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1rem;
+}
+.table-responsive table {
+  width: 100%;
+  min-width: 600px;
 }

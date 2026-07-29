@@ -33,6 +33,26 @@ async function refreshData() {
   departmentsList = await db.departments.toArray();
 }
 
+function renderLogoOverlay() {
+  let particles = '';
+  if (currentTheme === 'honeybee') {
+    particles = `<div class="theme-particles"><div class="theme-particle particle-bee">🐝</div><div class="theme-particle particle-bee">🐝</div><div class="theme-particle particle-bee">🐝</div></div>`;
+  } else if (currentTheme === 'avocado') {
+    particles = `<div class="theme-particles"><div class="theme-particle particle-avocado">🥑</div><div class="theme-particle particle-avocado">🥑</div></div>`;
+  } else if (currentTheme === 'futuristic') {
+    particles = `<div class="theme-particles"><div class="theme-particle particle-robot">🤖</div><div class="theme-particle particle-drone">🛸</div></div>`;
+  } else if (currentTheme === 'estuary') {
+    particles = `<div class="theme-particles"><div class="theme-particle particle-firefly">✨</div><div class="theme-particle particle-firefly">✨</div><div class="theme-particle particle-leaf">🍃</div><div class="theme-particle particle-leaf">🍂</div></div>`;
+  }
+  
+  return `
+    <div class="logo-overlay-container" style="width: 100%; height: 100%;">
+      <img src="/eden-logo.png" alt="EDEN Logo" style="width: 100%; height: 100%; object-fit: contain; position: relative; z-index: 5;" />
+      ${particles}
+    </div>
+  `;
+}
+
 function renderApp() {
   document.documentElement.setAttribute('data-theme', currentTheme);
 
@@ -50,8 +70,8 @@ function renderApp() {
       <!-- Desktop Left Sidebar Nav -->
       <aside class="desktop-sidebar">
         <div class="sidebar-brand">
-          <div class="sidebar-logo" style="background: none; border: none; padding: 0; box-shadow: none;">
-            <img src="/eden-logo.png" alt="EDEN Logo" style="width: 100%; height: 100%; object-fit: contain;" />
+          <div class="sidebar-logo" style="background: none; border: none; padding: 0; box-shadow: none; position: relative; overflow: visible;">
+            ${renderLogoOverlay()}
           </div>
           <div>
             <h1 class="brand-title">EDEN v3</h1>
@@ -97,8 +117,8 @@ function renderApp() {
         <header class="app-header">
           <!-- Mobile Brand Logo -->
           <div class="brand-badge">
-            <div class="brand-logo-icon" style="background: none; border: none; padding: 0; box-shadow: none;">
-              <img src="/eden-logo.png" alt="EDEN Logo" style="width: 100%; height: 100%; object-fit: contain;" />
+            <div class="brand-logo-icon" style="background: none; border: none; padding: 0; box-shadow: none; position: relative; overflow: visible;">
+              ${renderLogoOverlay()}
             </div>
             <div>
               <h1 class="brand-title">EDEN v3</h1>
@@ -121,7 +141,12 @@ function renderApp() {
             <!-- Theme Switcher -->
             <select class="theme-selector-pill" id="theme-selector">
               <option value="blue-gold" ${currentTheme === 'blue-gold' ? 'selected' : ''}>Blue, Green & Gold</option>
+              <option value="honeybee" ${currentTheme === 'honeybee' ? 'selected' : ''}>Honeybee</option>
               <option value="avocado" ${currentTheme === 'avocado' ? 'selected' : ''}>Glassy Avocado</option>
+              <option value="futuristic" ${currentTheme === 'futuristic' ? 'selected' : ''}>Futuristic</option>
+              <option value="estuary" ${currentTheme === 'estuary' ? 'selected' : ''}>Estuary (Magical)</option>
+              <option value="classic" ${currentTheme === 'classic' ? 'selected' : ''}>Classic Light</option>
+              <option value="dark" ${currentTheme === 'dark' ? 'selected' : ''}>Dark Theme (OLED)</option>
             </select>
 
             <button class="cyber-btn cyber-btn-glass" id="btn-open-sf1" style="padding: 8px 14px; font-size: 0.82rem;">
