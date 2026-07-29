@@ -1,7 +1,7 @@
 // EDEN v3 — Service Worker for offline PWA
 // This caches the app shell and assets for offline use
 
-const CACHE_NAME = 'eden-v3-cache-v1';
+const CACHE_NAME = 'eden-v3-cache-v2';
 
 // Files to pre-cache on install (app shell)
 const APP_SHELL = [
