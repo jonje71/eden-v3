@@ -2,9 +2,17 @@ import Dexie from 'dexie';
 
 export const db = new Dexie('EDEN_v3_Database');
 
+// v1 – initial schema
 db.version(1).stores({
   teacherProfile: 'id, serialNumber, fullName, schoolName, departmentId',
   students: '++id, lastName, firstName, sex, gradeSection, lrn, isEnriched, addedBySerial, departmentId, syncedAt',
+  departments: 'id, name, createdBySerial, createdDate'
+});
+
+// v2 – added cloud_id index for Supabase real-time sync
+db.version(2).stores({
+  teacherProfile: 'id, serialNumber, fullName, schoolName, departmentId',
+  students: '++id, cloud_id, lastName, firstName, sex, gradeSection, lrn, isEnriched, addedBySerial, departmentId, syncedAt',
   departments: 'id, name, createdBySerial, createdDate'
 });
 

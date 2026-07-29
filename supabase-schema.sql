@@ -1,17 +1,25 @@
 -- EDEN v3 Production Database Schema & Row-Level Security (RLS)
 -- Copy and paste this script into your Supabase SQL Editor (https://app.supabase.com)
+-- IMPORTANT: After running this, go to Supabase Dashboard → Database → Replication
+--            and enable "Realtime" for: students, teachers, departments tables.
 
--- 1. Create Teachers Profile Table
+-- 1. Create Teachers Profile Table (with SF7 fields)
 CREATE TABLE IF NOT EXISTS public.teachers (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   serial_number TEXT UNIQUE NOT NULL,
   full_name TEXT NOT NULL,
   school_name TEXT DEFAULT 'Unassigned School Hub',
   department_id UUID,
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  sex VARCHAR(2),
+  position TEXT,
+  degree TEXT,
+  major TEXT,
+  minor TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2. Create Students Master Table
+-- 2. Create Students Master Table (with cloud_id reference)
 CREATE TABLE IF NOT EXISTS public.students (
   id BIGSERIAL PRIMARY KEY,
   last_name TEXT NOT NULL,
@@ -34,6 +42,25 @@ CREATE TABLE IF NOT EXISTS public.departments (
   paired_serials TEXT[] DEFAULT '{}',
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Auto-update updated_at trigger for students and teachers
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS students_updated_at ON public.students;
+CREATE TRIGGER students_updated_at
+  BEFORE UPDATE ON public.students
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS teachers_updated_at ON public.teachers;
+CREATE TRIGGER teachers_updated_at
+  BEFORE UPDATE ON public.teachers
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Enable Row Level Security (RLS)
 ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
@@ -69,3 +96,13 @@ CREATE POLICY "Teachers can view and manage their department guilds"
     created_by_serial = (SELECT serial_number FROM public.teachers WHERE id = auth.uid())
     OR (SELECT serial_number FROM public.teachers WHERE id = auth.uid()) = ANY(paired_serials)
   );
+
+-- =====================================================
+-- ENABLE REALTIME (Run these commands after creating tables)
+-- =====================================================
+-- This adds your tables to Supabase's Realtime broadcast system.
+-- Required for cross-device live updates.
+
+ALTER PUBLICATION supabase_realtime ADD TABLE public.students;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.teachers;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.departments;

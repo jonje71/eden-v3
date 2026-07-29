@@ -2,16 +2,17 @@ import { db, getOrCreateTeacherProfile, initDemoDataIfNeeded } from './db/edenDb
 import { generateQrDataUrl } from './services/identity.js';
 import { parseSf1File } from './services/sf1Parser.js';
 import { isSupabaseConfigured, signInUser, signUpUser, signOutUser, getCurrentUser, updateUserPassword } from './services/supabaseClient.js';
+import { hydrateFromCloud, startRealtimeSync, stopRealtimeSync, setOnChangeCallback, pushStudentAdd, pushStudentDelete, pushProfileUpdate, pushDepartmentAdd } from './services/syncEngine.js';
 
 // Application State
 let activeTab = 'roster'; // 'roster', 'guild', 'hub', 'portals'
-let currentTheme = localStorage.getItem('eden_theme') || 'blue-gold'; // Default: Glassy Blue & Green with Gold Accent
+let currentTheme = localStorage.getItem('eden_theme') || 'blue-gold';
 let teacherProfile = null;
 let cloudUser = null;
-let studentsList = [];
+let studentsList = [];;
 let departmentsList = [];
 let isModalOpen = false;
-let modalType = null; // 'enroll', 'pair', 'sf1', 'auth'
+let modalType = null; // 'enroll', 'pair', 'sf1', 'auth', 'account'
 let searchQuery = '';
 let authMode = 'login'; // 'login' or 'signup'
 let authMessage = '';
@@ -19,11 +20,24 @@ let deferredPrompt = null;
 
 const appEl = document.getElementById('app');
 
+// Register sync engine callback so remote changes trigger UI re-render
+setOnChangeCallback(async () => {
+  await refreshData();
+  renderApp();
+});
+
 async function initApp() {
   document.documentElement.setAttribute('data-theme', currentTheme);
   teacherProfile = await getOrCreateTeacherProfile();
   cloudUser = await getCurrentUser();
   await initDemoDataIfNeeded();
+
+  // If user is logged in, hydrate local data from cloud and start real-time listener
+  if (cloudUser && isSupabaseConfigured) {
+    await hydrateFromCloud(teacherProfile.serialNumber);
+    startRealtimeSync(teacherProfile.serialNumber);
+  }
+
   await refreshData();
   renderApp();
 }
@@ -32,6 +46,7 @@ async function refreshData() {
   studentsList = await db.students.toArray();
   departmentsList = await db.departments.toArray();
 }
+
 
 function renderLogoOverlay() {
   let particles = '';
@@ -740,6 +755,10 @@ function attachEventListeners() {
           cloudUser = data.user;
           isModalOpen = false;
           authMessage = '';
+          // Start sync after login
+          await hydrateFromCloud(teacherProfile.serialNumber);
+          startRealtimeSync(teacherProfile.serialNumber);
+          await refreshData();
         }
       } else {
         const { data, error } = await signUpUser(email, password, teacherProfile.fullName);
@@ -757,6 +776,7 @@ function attachEventListeners() {
   const signOutBtn = document.getElementById('btn-sign-out');
   if (signOutBtn) {
     signOutBtn.addEventListener('click', async () => {
+      stopRealtimeSync();
       await signOutUser();
       cloudUser = null;
       isModalOpen = false;
@@ -775,7 +795,7 @@ function attachEventListeners() {
       const gradeSection = document.getElementById('input-grade-section').value.trim();
 
       if (lastName && firstName) {
-        await db.students.add({
+        const newStudent = {
           lastName,
           firstName,
           sex,
@@ -784,8 +804,18 @@ function attachEventListeners() {
           isEnriched: false,
           addedBySerial: teacherProfile.serialNumber,
           departmentId: null,
-          syncedAt: null
-        });
+          syncedAt: new Date().toISOString()
+        };
+        // Save locally first (instant feedback)
+        const localId = await db.students.add(newStudent);
+        // Push to cloud asynchronously (sync engine broadcasts to other devices)
+        if (cloudUser) {
+          const cloudRecord = await pushStudentAdd(newStudent);
+          if (cloudRecord) {
+            // Store cloud ID reference so we can delete/update from cloud later
+            await db.students.update(localId, { cloud_id: String(cloudRecord.id) });
+          }
+        }
         await refreshData();
         isModalOpen = false;
         renderApp();
@@ -801,12 +831,16 @@ function attachEventListeners() {
       const name = document.getElementById('input-guild-name').value.trim();
       const colleagueSerial = document.getElementById('input-colleague-serial').value.trim();
       if (name) {
-        await db.departments.add({
+        const newDept = {
           name,
           createdBySerial: teacherProfile.serialNumber,
           pairedSerials: colleagueSerial ? [colleagueSerial] : [],
           createdDate: new Date().toISOString()
-        });
+        };
+        await db.departments.add(newDept);
+        if (cloudUser) {
+          await pushDepartmentAdd(newDept);
+        }
         await refreshData();
         isModalOpen = false;
         renderApp();
@@ -850,7 +884,13 @@ function attachEventListeners() {
     btn.addEventListener('click', async (e) => {
       const id = Number(e.currentTarget.getAttribute('data-id'));
       if (id) {
+        // Get the cloud_id before deleting locally
+        const student = await db.students.get(id);
         await db.students.delete(id);
+        // Also delete from cloud if synced
+        if (cloudUser && student && student.cloud_id) {
+          await pushStudentDelete(student.cloud_id);
+        }
         await refreshData();
         renderApp();
       }
@@ -916,7 +956,12 @@ function attachEventListeners() {
       teacherProfile.degree = document.getElementById('input-sf7-degree').value;
       teacherProfile.major = document.getElementById('input-sf7-major').value;
       teacherProfile.minor = document.getElementById('input-sf7-minor').value;
+      // Save locally
       await db.teacherProfile.put(teacherProfile);
+      // Push to cloud so other devices get updated profile
+      if (cloudUser) {
+        await pushProfileUpdate(teacherProfile);
+      }
       isModalOpen = false;
       renderApp();
       alert('SF7 Profile saved successfully.');
