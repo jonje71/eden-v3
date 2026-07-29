@@ -306,20 +306,34 @@ export async function pushProfileUpdate(profile) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     
-    const { error } = await supabase.from('teachers').upsert({
+    const payload = {
       id: user.id,
       serial_number: profile.serialNumber,
-      full_name: profile.fullName,
-      school_name: profile.schoolName,
-      sex: profile.sex,
-      position: profile.position,
-      degree: profile.degree,
-      major: profile.major,
-      minor: profile.minor,
-      avatar_base64: profile.avatarBase64,
-    }, { onConflict: 'id' });
+      full_name: profile.fullName || 'Educator User',
+      school_name: profile.schoolName || 'Unassigned School Hub',
+      sex: profile.sex || '',
+      position: profile.position || '',
+      degree: profile.degree || '',
+      major: profile.major || '',
+      minor: profile.minor || '',
+      avatar_base64: profile.avatarBase64 || null,
+    };
 
-    if (error) console.warn('[EDEN Sync] Push profile update error:', error.message);
+    const { error } = await supabase.from('teachers').upsert(payload, { onConflict: 'id' });
+
+    if (error) {
+      console.warn('[EDEN Sync] Upsert profile error:', error.message);
+      // Fallback: try update, if fails then insert
+      const { error: updateErr } = await supabase.from('teachers').update(payload).eq('id', user.id);
+      if (updateErr) {
+        const { error: insertErr } = await supabase.from('teachers').insert(payload);
+        if (insertErr) {
+          console.warn('[EDEN Sync] Insert profile error:', insertErr.message);
+        }
+      }
+    } else {
+      console.log('[EDEN Sync] Teacher profile successfully pushed to cloud.');
+    }
   } catch (err) {
     console.warn('[EDEN Sync] Push profile update exception:', err.message);
   }
