@@ -364,6 +364,11 @@ body {
   border-color: var(--accent-gold);
 }
 
+.theme-selector-pill option {
+  background-color: #0f172a; /* Deep slate background for readable dropdown options */
+  color: #f8fafc;
+}
+
 /* Status Pill */
 .status-pill {
   padding: 6px 14px;
