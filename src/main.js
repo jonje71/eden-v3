@@ -1,7 +1,7 @@
 import { db, getOrCreateTeacherProfile, initDemoDataIfNeeded } from './db/edenDb.js';
 import { generateQrDataUrl } from './services/identity.js';
 import { parseSf1File } from './services/sf1Parser.js';
-import { isSupabaseConfigured, signInUser, signUpUser, signOutUser, getCurrentUser, updateUserPassword, signInWithGoogle } from './services/supabaseClient.js';
+import { isSupabaseConfigured, signInUser, signUpUser, signOutUser, getCurrentUser, updateUserPassword, signInWithGoogle, supabase } from './services/supabaseClient.js';
 import { hydrateFromCloud, resolveCloudProfile, startRealtimeSync, stopRealtimeSync, setOnChangeCallback, pushStudentAdd, pushStudentDelete, pushProfileUpdate, pushDepartmentAdd } from './services/syncEngine.js';
 
 // Application State
@@ -31,6 +31,29 @@ async function initApp() {
   teacherProfile = await getOrCreateTeacherProfile();
   cloudUser = await getCurrentUser();
   await initDemoDataIfNeeded();
+
+  // Handle automatic OAuth redirect completion and auth state changes
+  if (isSupabaseConfigured) {
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
+        if (!cloudUser || cloudUser.id !== session.user.id) {
+          cloudUser = session.user;
+          const localSerial = teacherProfile.serialNumber;
+          teacherProfile = await resolveCloudProfile(teacherProfile);
+          await discardOtherAccountData(localSerial);
+          await hydrateFromCloud(teacherProfile.serialNumber);
+          startRealtimeSync(teacherProfile.serialNumber);
+          await refreshData();
+          renderApp();
+        }
+      } else if (event === 'SIGNED_OUT') {
+        cloudUser = null;
+        stopRealtimeSync();
+        await refreshData();
+        renderApp();
+      }
+    });
+  }
 
   // If user is logged in, hydrate local data from cloud and start real-time listener
   if (cloudUser && isSupabaseConfigured) {
