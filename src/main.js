@@ -668,7 +668,7 @@ function renderModalContent() {
 
             <div style="grid-column: 1 / -1; margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px;">
               <button type="button" class="cyber-btn cyber-btn-glass btn-modal-close">Cancel</button>
-              <button type="submit" class="cyber-btn cyber-btn-primary">Save SF7 Profile</button>
+              <button type="button" id="btn-save-sf7" class="cyber-btn cyber-btn-primary">Save SF7 Profile</button>
             </div>
           </form>
         </div>
@@ -1075,26 +1075,47 @@ function attachEventListeners() {
     });
   }
 
-  // Save SF7 Profile
+  // Save SF7 Profile Handler
+  const handleSaveSf7 = async () => {
+    const nameEl = document.getElementById('input-sf7-name');
+    const name = nameEl ? nameEl.value.trim() : '';
+
+    if (!name) {
+      alert('Please enter your Full Name before saving.');
+      if (nameEl) nameEl.focus();
+      return;
+    }
+
+    teacherProfile.fullName = name;
+    teacherProfile.sex = document.getElementById('input-sf7-sex')?.value || '';
+    teacherProfile.position = document.getElementById('input-sf7-position')?.value || '';
+    teacherProfile.degree = document.getElementById('input-sf7-degree')?.value || '';
+    teacherProfile.major = document.getElementById('input-sf7-major')?.value || '';
+    teacherProfile.minor = document.getElementById('input-sf7-minor')?.value || '';
+    
+    // Save locally
+    await db.teacherProfile.put(teacherProfile);
+    
+    // Push to cloud so other devices get updated profile
+    if (cloudUser) {
+      await pushProfileUpdate(teacherProfile);
+    }
+
+    isModalOpen = false;
+    renderApp();
+    alert('✓ SF7 Profile saved and synced to cloud successfully!');
+  };
+
+  const saveSf7Btn = document.getElementById('btn-save-sf7');
+  if (saveSf7Btn) {
+    saveSf7Btn.addEventListener('click', handleSaveSf7);
+  }
+
   const sf7Form = document.getElementById('form-sf7-profile');
   if (sf7Form) {
     sf7Form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      teacherProfile.fullName = document.getElementById('input-sf7-name').value;
-      teacherProfile.sex = document.getElementById('input-sf7-sex').value;
-      teacherProfile.position = document.getElementById('input-sf7-position').value;
-      teacherProfile.degree = document.getElementById('input-sf7-degree').value;
-      teacherProfile.major = document.getElementById('input-sf7-major').value;
-      teacherProfile.minor = document.getElementById('input-sf7-minor').value;
-      // Save locally
-      await db.teacherProfile.put(teacherProfile);
-      // Push to cloud so other devices get updated profile
-      if (cloudUser) {
-        await pushProfileUpdate(teacherProfile);
-      }
-      isModalOpen = false;
-      renderApp();
-      alert('SF7 Profile saved successfully.');
+      await handleSaveSf7();
     });
   }
 
