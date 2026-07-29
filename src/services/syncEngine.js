@@ -63,6 +63,7 @@ export async function hydrateFromCloud(teacherSerial) {
           degree: cloudProfile.degree || localProfile.degree,
           major: cloudProfile.major || localProfile.major,
           minor: cloudProfile.minor || localProfile.minor,
+          avatarBase64: cloudProfile.avatar_base64 || localProfile.avatarBase64,
         });
       }
     }
@@ -160,6 +161,7 @@ export function startRealtimeSync(teacherSerial) {
               degree: payload.new.degree || localProfile.degree,
               major: payload.new.major || localProfile.major,
               minor: payload.new.minor || localProfile.minor,
+              avatarBase64: payload.new.avatar_base64 || localProfile.avatarBase64,
             });
             if (onChangeCallback) onChangeCallback();
           }
@@ -224,7 +226,11 @@ export async function pushStudentDelete(cloudId) {
 export async function pushProfileUpdate(profile) {
   if (!isSupabaseConfigured) return;
   try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    
     const { error } = await supabase.from('teachers').upsert({
+      id: user.id,
       serial_number: profile.serialNumber,
       full_name: profile.fullName,
       school_name: profile.schoolName,
@@ -233,7 +239,8 @@ export async function pushProfileUpdate(profile) {
       degree: profile.degree,
       major: profile.major,
       minor: profile.minor,
-    }, { onConflict: 'serial_number' });
+      avatar_base64: profile.avatarBase64,
+    }, { onConflict: 'id' });
 
     if (error) console.warn('[EDEN Sync] Push profile update error:', error.message);
   } catch (err) {

@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS public.teachers (
   degree TEXT,
   major TEXT,
   minor TEXT,
+  avatar_base64 TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );

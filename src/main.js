@@ -919,6 +919,9 @@ function attachEventListeners() {
         reader.onload = async (event) => {
           teacherProfile.avatarBase64 = event.target.result;
           await db.teacherProfile.put(teacherProfile);
+          if (cloudUser) {
+            await pushProfileUpdate(teacherProfile);
+          }
           renderApp();
         };
         reader.readAsDataURL(file);
