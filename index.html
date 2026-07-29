@@ -8,7 +8,18 @@
   <meta name="theme-color" content="#080e1a" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  
+  <meta name="apple-mobile-web-app-title" content="EDEN v3" />
+  <meta name="application-name" content="EDEN v3" />
+  <meta name="msapplication-TileColor" content="#080e1a" />
+  <meta name="mobile-web-app-capable" content="yes" />
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/manifest.json" />
+
+  <!-- App Icons -->
+  <link rel="icon" type="image/png" href="/eden-logo.png" />
+  <link rel="apple-touch-icon" href="/eden-logo.png" />
+
   <!-- Futuristic Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,5 +30,35 @@
 <body class="bg-cyber-dark text-slate-100 antialiased selection:bg-neon-green selection:text-slate-950">
   <div id="app" class="mobile-app-viewport"></div>
   <script type="module" src="/src/main.js"></script>
+
+  <!-- Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((reg) => {
+            console.log('[EDEN] Service Worker registered. Scope:', reg.scope);
+            // Check for updates periodically
+            setInterval(() => reg.update(), 60 * 60 * 1000); // Check hourly
+            // Listen for new SW ready
+            reg.addEventListener('updatefound', () => {
+              const newWorker = reg.installing;
+              if (newWorker) {
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'activated') {
+                    // Show update notification
+                    if (confirm('A new version of EDEN is available! Refresh to update?')) {
+                      window.location.reload();
+                    }
+                  }
+                });
+              }
+            });
+          })
+          .catch((err) => console.warn('[EDEN] SW registration failed:', err));
+      });
+    }
+  </script>
 </body>
 </html>
+

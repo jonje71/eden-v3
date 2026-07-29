@@ -49,8 +49,8 @@ function renderApp() {
       <!-- Desktop Left Sidebar Nav -->
       <aside class="desktop-sidebar">
         <div class="sidebar-brand">
-          <div class="sidebar-logo">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          <div class="sidebar-logo" style="background: none; border: none; padding: 0; box-shadow: none;">
+            <img src="/eden-logo.png" alt="EDEN Logo" style="width: 100%; height: 100%; object-fit: contain;" />
           </div>
           <div>
             <h1 class="brand-title">EDEN v3</h1>
@@ -96,8 +96,8 @@ function renderApp() {
         <header class="app-header">
           <!-- Mobile Brand Logo -->
           <div class="brand-badge">
-            <div class="brand-logo-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            <div class="brand-logo-icon" style="background: none; border: none; padding: 0; box-shadow: none;">
+              <img src="/eden-logo.png" alt="EDEN Logo" style="width: 100%; height: 100%; object-fit: contain;" />
             </div>
             <div>
               <h1 class="brand-title">EDEN v3</h1>

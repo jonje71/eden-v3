@@ -1,0 +1,45 @@
+{
+  "name": "EDEN v3 — E-Database & Enrollment Nexus",
+  "short_name": "EDEN v3",
+  "description": "Next-generation offline-first PWA for Filipino educators. Enrollment, class records, and department guild sharing.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#080e1a",
+  "theme_color": "#080e1a",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "/eden-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/eden-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/eden-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "EDEN v3 Teacher Roster"
+    },
+    {
+      "src": "/eden-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "EDEN v3 Desktop Dashboard"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}
