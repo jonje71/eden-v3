@@ -592,6 +592,18 @@ function renderModalContent() {
                <button type="button" class="cyber-btn cyber-btn-glass" id="btn-side-sf1" style="width: 100%;">Upload & Enrich SF1</button>
             </div>
 
+            <div style="grid-column: 1 / -1; margin-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 16px;">
+               <div style="font-weight: 700; margin-bottom: 8px; font-size: 0.9rem;">Cloud Sync Account</div>
+               <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Sign in to sync your Roster across devices.</p>
+               ${cloudUser 
+                 ? `<div style="display:flex; justify-content:space-between; align-items:center; background: rgba(0,255,0,0.1); padding: 10px; border-radius: 8px;">
+                      <span style="font-size: 0.85rem; color: var(--accent-green); font-weight: 600;">âœ“ Synced as ${cloudUser.email}</span>
+                      <button type="button" class="cyber-btn cyber-btn-glass" id="btn-sign-out" style="padding: 4px 10px; font-size: 0.75rem;">Sign Out</button>
+                    </div>`
+                 : `<button type="button" class="cyber-btn cyber-btn-primary" id="btn-open-auth" style="width: 100%;">Sign In to Sync</button>`
+               }
+            </div>
+
             <div style="grid-column: 1 / -1; margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px;">
               <button type="button" class="cyber-btn cyber-btn-glass btn-modal-close">Cancel</button>
               <button type="submit" class="cyber-btn cyber-btn-primary">Save SF7 Profile</button>
