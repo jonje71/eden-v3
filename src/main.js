@@ -15,6 +15,7 @@ let modalType = null; // 'enroll', 'pair', 'sf1', 'auth'
 let searchQuery = '';
 let authMode = 'login'; // 'login' or 'signup'
 let authMessage = '';
+let deferredPrompt = null;
 
 const appEl = document.getElementById('app');
 
@@ -127,6 +128,12 @@ function renderApp() {
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
               SF1 Enrich
             </button>
+            ${deferredPrompt ? `
+            <button class="cyber-btn cyber-btn-primary" id="btn-install-pwa" style="padding: 6px 12px; font-size: 0.8rem; background: var(--accent-green); color: #000; border: none; font-weight: 700;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Install EDENv3
+            </button>
+            ` : ''}
             <div class="status-pill">
               <span class="status-dot"></span>
               <span>PWA Adaptive</span>
@@ -776,6 +783,20 @@ function attachEventListeners() {
       }
     });
   });
+
+  // PWA Install Prompt
+  const installBtn = document.getElementById('btn-install-pwa');
+  if (installBtn && deferredPrompt) {
+    installBtn.addEventListener('click', async () => {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        console.log('User accepted the install prompt');
+      }
+      deferredPrompt = null;
+      renderApp();
+    });
+  }
 }
 
 // Global Keydown (Escape key closes modal)
@@ -785,6 +806,18 @@ window.addEventListener('keydown', (e) => {
     authMessage = '';
     renderApp();
   }
+});
+
+// PWA Install Event Listeners
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  renderApp(); // Re-render to show the install button
+});
+
+window.addEventListener('appinstalled', () => {
+  deferredPrompt = null;
+  renderApp(); // Re-render to hide the install button
 });
 
 // Start application
