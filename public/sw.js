@@ -9,6 +9,8 @@ const APP_SHELL = [
   '/index.html',
   '/manifest.json',
   '/eden-logo.png',
+  '/icon-192.png',
+  '/icon-512.png',
 ];
 
 // Install event — pre-cache app shell
