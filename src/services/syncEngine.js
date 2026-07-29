@@ -68,6 +68,31 @@ export async function resolveCloudProfile(localProfile) {
   }
 }
 
+// Sync any local offline students (created before login) up to cloud
+export async function syncUnsyncedLocalStudents(teacherSerial) {
+  if (!isSupabaseConfigured) return;
+  try {
+    const unSynced = await db.students
+      .filter(s => !s.cloud_id)
+      .toArray();
+
+    for (const student of unSynced) {
+      const cloudRecord = await pushStudentAdd({
+        ...student,
+        addedBySerial: teacherSerial
+      });
+      if (cloudRecord) {
+        await db.students.update(student.id, { 
+          cloud_id: String(cloudRecord.id),
+          addedBySerial: teacherSerial 
+        });
+      }
+    }
+  } catch (err) {
+    console.warn('[EDEN Sync] Unsynced students push error:', err.message);
+  }
+}
+
 // ─────────────────────────────────────────────
 // STEP 1: Initial data hydration from cloud
 // Pull all cloud records and store into local IndexedDB
@@ -76,7 +101,10 @@ export async function hydrateFromCloud(teacherSerial) {
   if (!isSupabaseConfigured) return;
 
   try {
-    // Pull students belonging to this teacher
+    // 1. Push any local offline students created before login to cloud
+    await syncUnsyncedLocalStudents(teacherSerial);
+
+    // 2. Pull all cloud students belonging to this teacher
     const { data: cloudStudents, error: studErr } = await supabase
       .from('students')
       .select('*')
@@ -93,7 +121,8 @@ export async function hydrateFromCloud(teacherSerial) {
     const { data: cloudProfile, error: profErr } = await supabase
       .from('teachers')
       .select('*')
-      .single();
+      .eq('serial_number', teacherSerial)
+      .maybeSingle();
 
     if (!profErr && cloudProfile) {
       const localProfile = await db.teacherProfile.get('main');
