@@ -20,6 +20,12 @@ export async function getOrCreateTeacherProfile() {
       fullName: 'Educator User',
       schoolName: 'Unassigned School Hub',
       departmentId: null,
+      avatarBase64: null,
+      sex: '',
+      position: '',
+      degree: '',
+      major: '',
+      minor: '',
       createdDate: new Date().toISOString()
     };
     await db.teacherProfile.put(profile);

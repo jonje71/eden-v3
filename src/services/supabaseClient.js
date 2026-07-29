@@ -48,3 +48,13 @@ export async function getCurrentUser() {
   const { data: { user } } = await supabase.auth.getUser();
   return user;
 }
+
+export async function updateUserPassword(newPassword) {
+  if (!isSupabaseConfigured) {
+    return { error: { message: 'Supabase credentials not configured in .env yet.' } };
+  }
+  const { data, error } = await supabase.auth.updateUser({
+    password: newPassword
+  });
+  return { data, error };
+}

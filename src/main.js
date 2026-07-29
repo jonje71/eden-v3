@@ -1,7 +1,7 @@
 import { db, getOrCreateTeacherProfile, initDemoDataIfNeeded } from './db/edenDb.js';
 import { generateQrDataUrl } from './services/identity.js';
 import { parseSf1File } from './services/sf1Parser.js';
-import { isSupabaseConfigured, signInUser, signUpUser, signOutUser, getCurrentUser } from './services/supabaseClient.js';
+import { isSupabaseConfigured, signInUser, signUpUser, signOutUser, getCurrentUser, updateUserPassword } from './services/supabaseClient.js';
 
 // Application State
 let activeTab = 'roster'; // 'roster', 'guild', 'hub', 'portals'
@@ -127,17 +127,11 @@ function renderApp() {
           </div>
 
           <!-- Desktop Search Header -->
-          <div style="display: flex; align-items: center; gap: 16px; flex: 1; max-width: 480px;">
+          <div class="header-search-container" style="display: flex; align-items: center; gap: 16px; flex: 1; min-width: 200px; max-width: 480px;">
             <input type="text" class="cyber-input" id="search-student-header" placeholder="Search student name, LRN, section..." value="${searchQuery}" style="padding: 10px 16px; font-size: 0.85rem;" />
           </div>
 
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <!-- Cloud Account Pill -->
-            <button class="cyber-btn cyber-btn-glass" id="btn-open-auth" style="padding: 6px 12px; font-size: 0.8rem;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              <span>${cloudUser ? cloudUser.email.split('@')[0] : 'Cloud Sync Account'}</span>
-            </button>
-
+          <div class="header-actions-container" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
             <!-- Theme Switcher -->
             <select class="theme-selector-pill" id="theme-selector">
               <option value="blue-gold" ${currentTheme === 'blue-gold' ? 'selected' : ''}>Blue, Green & Gold</option>
@@ -149,9 +143,13 @@ function renderApp() {
               <option value="dark" ${currentTheme === 'dark' ? 'selected' : ''}>Dark Theme (OLED)</option>
             </select>
 
-            <button class="cyber-btn cyber-btn-glass" id="btn-open-sf1" style="padding: 8px 14px; font-size: 0.82rem;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              SF1 Enrich
+            <!-- Teacher Account Button -->
+            <button class="account-btn" id="btn-open-account" title="Teacher Account & Settings">
+              ${teacherProfile.avatarBase64 
+                ? `<img src="${teacherProfile.avatarBase64}" class="account-avatar" alt="Avatar">`
+                : `<div class="account-avatar">${teacherProfile.fullName ? teacherProfile.fullName.charAt(0).toUpperCase() : 'E'}</div>`
+              }
+              <span style="margin-right: 8px;">Account</span>
             </button>
             ${deferredPrompt ? `
             <button class="cyber-btn cyber-btn-primary" id="btn-install-pwa" style="padding: 6px 12px; font-size: 0.8rem; background: var(--accent-green); color: #000; border: none; font-weight: 700;">
@@ -215,7 +213,7 @@ function renderApp() {
 function renderTabContent(filteredStudents) {
   if (activeTab === 'roster') {
     return `
-      <div class="desktop-grid-2">
+      <div style="width: 100%;">
         <!-- Main Student Roster Column -->
         <div>
           <!-- Quick Overview Card -->
@@ -258,37 +256,6 @@ function renderTabContent(filteredStudents) {
                 </button>
               </div>
             `).join('')}
-          </div>
-        </div>
-
-        <!-- Right Side Context Panel (Desktop) -->
-        <div>
-          <!-- Educator Identity Widget -->
-          <div class="glass-card">
-            <div class="section-title" style="margin-bottom: 12px;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="13" y2="12"/></svg>
-              <span>Educator Serial & QR</span>
-            </div>
-            
-            <div class="qr-card-container" style="padding: 12px 0;">
-              <div class="qr-frame" id="qr-code-box" style="width: 150px; height: 150px;"></div>
-              <div class="serial-code-badge">${teacherProfile.serialNumber}</div>
-              <p style="font-size: 0.75rem; color: var(--text-muted);">Use for peer department pairing or school hub consolidation.</p>
-            </div>
-          </div>
-
-          <!-- SF1 Enricher Card -->
-          <div class="glass-card">
-            <div class="section-title" style="margin-bottom: 6px;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              <span>SF1 Excel Enricher</span>
-            </div>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 14px;">
-              Upload official SF1 files offline to complete LRNs and demographic fields automatically.
-            </p>
-            <button class="cyber-btn cyber-btn-glass" id="btn-side-sf1" style="width: 100%;">
-              Upload & Enrich SF1
-            </button>
           </div>
         </div>
       </div>
@@ -535,6 +502,87 @@ function renderModalContent() {
 
       <div style="display: flex; gap: 12px; margin-top: 24px;">
         <button type="button" class="cyber-btn cyber-btn-glass btn-modal-close" style="width: 100%;">Close</button>
+      </div>
+    `;
+  }
+
+  if (modalType === 'account') {
+    return `
+      <div class="section-title" style="margin-bottom: 6px;">Teacher Account & SF7 Profile</div>
+      <div class="section-subtitle" style="margin-bottom: 20px;">Manage your identity, security, and official SF7 details.</div>
+      
+      <div class="account-modal-grid">
+        <!-- Left Column: Avatar & Security -->
+        <div>
+          <div class="profile-upload-container" id="avatar-upload-trigger" title="Click to upload profile photo">
+            ${teacherProfile.avatarBase64 
+              ? `<img src="${teacherProfile.avatarBase64}" id="avatar-preview" alt="Avatar">`
+              : `<div id="avatar-preview" style="font-size: 3rem; font-weight: 800; color: var(--accent-gold); display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">${teacherProfile.fullName ? teacherProfile.fullName.charAt(0).toUpperCase() : 'E'}</div>`
+            }
+            <div class="profile-upload-overlay">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom: 4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Upload Photo
+            </div>
+            <input type="file" id="avatar-file-input" accept="image/*" style="display: none;">
+          </div>
+          
+          <div class="glass-card" style="padding: 16px; margin-bottom: 16px;">
+            <div style="font-weight: 700; margin-bottom: 12px; font-size: 0.9rem;">Change Password</div>
+            <input type="password" class="cyber-input" id="input-new-password" placeholder="New Password" style="margin-bottom: 8px; font-size: 0.8rem; padding: 10px;" />
+            <button type="button" class="cyber-btn cyber-btn-primary" id="btn-change-password" style="width: 100%; padding: 8px; font-size: 0.8rem;">Update Password</button>
+          </div>
+
+          <div class="glass-card" style="padding: 16px;">
+             <div style="font-weight: 700; margin-bottom: 8px; font-size: 0.9rem; text-align: center;">Identity QR</div>
+             <div class="qr-frame" id="qr-code-box" style="width: 120px; height: 120px; margin: 0 auto 10px auto;"></div>
+             <div class="serial-code-badge" style="font-size: 0.7rem;">${teacherProfile.serialNumber}</div>
+          </div>
+        </div>
+
+        <!-- Right Column: SF7 Form -->
+        <div>
+          <form id="form-sf7-profile" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px;">
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label>Full Name (Last Name, First Name, M.I.)</label>
+              <input type="text" class="cyber-input" id="input-sf7-name" value="${teacherProfile.fullName || ''}" required />
+            </div>
+            <div class="form-group">
+              <label>Sex</label>
+              <select class="cyber-input" id="input-sf7-sex">
+                <option value="">Select...</option>
+                <option value="M" ${teacherProfile.sex === 'M' ? 'selected' : ''}>Male</option>
+                <option value="F" ${teacherProfile.sex === 'F' ? 'selected' : ''}>Female</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Position / Designation</label>
+              <input type="text" class="cyber-input" id="input-sf7-position" value="${teacherProfile.position || ''}" placeholder="e.g. Teacher III" />
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label>Highest Educational Attainment (Degree)</label>
+              <input type="text" class="cyber-input" id="input-sf7-degree" value="${teacherProfile.degree || ''}" placeholder="e.g. BSEd" />
+            </div>
+            <div class="form-group">
+              <label>Major</label>
+              <input type="text" class="cyber-input" id="input-sf7-major" value="${teacherProfile.major || ''}" />
+            </div>
+            <div class="form-group">
+              <label>Minor</label>
+              <input type="text" class="cyber-input" id="input-sf7-minor" value="${teacherProfile.minor || ''}" />
+            </div>
+            
+            <div style="grid-column: 1 / -1; margin-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 16px;">
+               <div style="font-weight: 700; margin-bottom: 8px; font-size: 0.9rem;">SF1 Excel Enricher</div>
+               <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Upload official SF1 files offline to complete LRNs automatically.</p>
+               <button type="button" class="cyber-btn cyber-btn-glass" id="btn-side-sf1" style="width: 100%;">Upload & Enrich SF1</button>
+            </div>
+
+            <div style="grid-column: 1 / -1; margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px;">
+              <button type="button" class="cyber-btn cyber-btn-glass btn-modal-close">Cancel</button>
+              <button type="submit" class="cyber-btn cyber-btn-primary">Save SF7 Profile</button>
+            </div>
+          </form>
+        </div>
       </div>
     `;
   }
@@ -808,6 +856,72 @@ function attachEventListeners() {
       }
     });
   });
+
+  // Account Modal Trigger
+  const accountBtn = document.getElementById('btn-open-account');
+  if (accountBtn) {
+    accountBtn.addEventListener('click', () => {
+      modalType = 'account';
+      isModalOpen = true;
+      renderApp();
+    });
+  }
+
+  // Account Modal Upload Picture Logic
+  const avatarTrigger = document.getElementById('avatar-upload-trigger');
+  const avatarInput = document.getElementById('avatar-file-input');
+  if (avatarTrigger && avatarInput) {
+    avatarTrigger.addEventListener('click', () => avatarInput.click());
+    avatarInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+          teacherProfile.avatarBase64 = event.target.result;
+          await db.teacherProfile.put(teacherProfile);
+          renderApp();
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  // Account Change Password
+  const changePasswordBtn = document.getElementById('btn-change-password');
+  if (changePasswordBtn) {
+    changePasswordBtn.addEventListener('click', async () => {
+      const newPwd = document.getElementById('input-new-password').value;
+      if (!newPwd || newPwd.length < 6) {
+        alert('Password must be at least 6 characters.');
+        return;
+      }
+      const { error } = await updateUserPassword(newPwd);
+      if (error) {
+        alert('Error updating password: ' + error.message);
+      } else {
+        alert('Password updated successfully!');
+        document.getElementById('input-new-password').value = '';
+      }
+    });
+  }
+
+  // Save SF7 Profile
+  const sf7Form = document.getElementById('form-sf7-profile');
+  if (sf7Form) {
+    sf7Form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      teacherProfile.fullName = document.getElementById('input-sf7-name').value;
+      teacherProfile.sex = document.getElementById('input-sf7-sex').value;
+      teacherProfile.position = document.getElementById('input-sf7-position').value;
+      teacherProfile.degree = document.getElementById('input-sf7-degree').value;
+      teacherProfile.major = document.getElementById('input-sf7-major').value;
+      teacherProfile.minor = document.getElementById('input-sf7-minor').value;
+      await db.teacherProfile.put(teacherProfile);
+      isModalOpen = false;
+      renderApp();
+      alert('SF7 Profile saved successfully.');
+    });
+  }
 
   // PWA Install Prompt
   const installBtn = document.getElementById('btn-install-pwa');
