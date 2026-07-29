@@ -23,6 +23,50 @@ export function setOnChangeCallback(fn) {
   onChangeCallback = fn;
 }
 
+// Make the authenticated account's cloud profile the source of truth for its
+// serial number. A fresh browser has its own IndexedDB profile and therefore
+// its own generated serial until this step runs.
+export async function resolveCloudProfile(localProfile) {
+  if (!isSupabaseConfigured || !localProfile) return localProfile;
+
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return localProfile;
+
+    const { data: cloudProfile, error: fetchError } = await supabase
+      .from('teachers')
+      .select('*')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (fetchError) throw fetchError;
+
+    if (!cloudProfile) {
+      await pushProfileUpdate(localProfile);
+      return localProfile;
+    }
+
+    const resolvedProfile = {
+      ...localProfile,
+      serialNumber: cloudProfile.serial_number,
+      fullName: cloudProfile.full_name || localProfile.fullName,
+      schoolName: cloudProfile.school_name || localProfile.schoolName,
+      sex: cloudProfile.sex || localProfile.sex,
+      position: cloudProfile.position || localProfile.position,
+      degree: cloudProfile.degree || localProfile.degree,
+      major: cloudProfile.major || localProfile.major,
+      minor: cloudProfile.minor || localProfile.minor,
+      avatarBase64: cloudProfile.avatar_base64 || localProfile.avatarBase64,
+    };
+
+    await db.teacherProfile.put(resolvedProfile);
+    return resolvedProfile;
+  } catch (err) {
+    console.warn('[EDEN Sync] Profile resolution error:', err.message);
+    return localProfile;
+  }
+}
+
 // ─────────────────────────────────────────────
 // STEP 1: Initial data hydration from cloud
 // Pull all cloud records and store into local IndexedDB
@@ -41,7 +85,7 @@ export async function hydrateFromCloud(teacherSerial) {
       // Map snake_case cloud fields → camelCase local fields
       const mapped = cloudStudents.map(mapStudentFromCloud);
       // Bulk put (upsert by cloud_id) into local DB
-      await db.students.bulkPut(mapped);
+      await upsertStudentsLocally(mapped);
     }
 
     // Pull teacher's own profile
@@ -56,6 +100,7 @@ export async function hydrateFromCloud(teacherSerial) {
         // Merge cloud data into local profile (cloud is source of truth for SF7 fields)
         await db.teacherProfile.put({
           ...localProfile,
+          serialNumber: cloudProfile.serial_number || localProfile.serialNumber,
           fullName: cloudProfile.full_name || localProfile.fullName,
           schoolName: cloudProfile.school_name || localProfile.schoolName,
           sex: cloudProfile.sex || localProfile.sex,
@@ -127,8 +172,10 @@ export function startRealtimeSync(teacherSerial) {
         const existing = await db.students.where('cloud_id').equals(mapped.cloud_id).first();
         if (existing) {
           await db.students.update(existing.id, mapped);
-          if (onChangeCallback) onChangeCallback();
+        } else {
+          await db.students.add(mapped);
         }
+        if (onChangeCallback) onChangeCallback();
       }
     )
     .on(
@@ -284,4 +331,17 @@ function mapStudentFromCloud(s) {
     departmentId: s.department_id || null,
     syncedAt: s.updated_at || s.created_at
   };
+}
+
+async function upsertStudentsLocally(students) {
+  await db.transaction('rw', db.students, async () => {
+    for (const student of students) {
+      const existing = await db.students.where('cloud_id').equals(student.cloud_id).first();
+      if (existing) {
+        await db.students.update(existing.id, student);
+      } else {
+        await db.students.add(student);
+      }
+    }
+  });
 }

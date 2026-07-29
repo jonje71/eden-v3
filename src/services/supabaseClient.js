@@ -58,3 +58,17 @@ export async function updateUserPassword(newPassword) {
   });
   return { data, error };
 }
+
+export async function signInWithGoogle() {
+  if (!isSupabaseConfigured) {
+    return { error: { message: 'Supabase credentials not configured in .env yet.' } };
+  }
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.origin
+    }
+  });
+  return { data, error };
+}
+
