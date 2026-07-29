@@ -48,7 +48,7 @@ export async function resolveCloudProfile(localProfile) {
 
     const resolvedProfile = {
       ...localProfile,
-      serialNumber: cloudProfile.serial_number,
+      serialNumber: cloudProfile.serial_number || localProfile.serialNumber,
       fullName: cloudProfile.full_name || localProfile.fullName,
       schoolName: cloudProfile.school_name || localProfile.schoolName,
       sex: cloudProfile.sex || localProfile.sex,
@@ -60,6 +60,7 @@ export async function resolveCloudProfile(localProfile) {
     };
 
     await db.teacherProfile.put(resolvedProfile);
+    await pushProfileUpdate(resolvedProfile);
     return resolvedProfile;
   } catch (err) {
     console.warn('[EDEN Sync] Profile resolution error:', err.message);
