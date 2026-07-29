@@ -142,40 +142,19 @@ function renderApp() {
           </div>
 
           <!-- Desktop Search Header -->
-          <div class="header-search-container" style="display: flex; align-items: center; gap: 16px; flex: 1; min-width: 200px; max-width: 480px;">
+          <div class="header-search-container">
             <input type="text" class="cyber-input" id="search-student-header" placeholder="Search student name, LRN, section..." value="${searchQuery}" style="padding: 10px 16px; font-size: 0.85rem;" />
           </div>
 
-          <div class="header-actions-container" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-            <!-- Theme Switcher -->
-            <select class="theme-selector-pill" id="theme-selector">
-              <option value="blue-gold" ${currentTheme === 'blue-gold' ? 'selected' : ''}>Blue, Green & Gold</option>
-              <option value="honeybee" ${currentTheme === 'honeybee' ? 'selected' : ''}>Honeybee</option>
-              <option value="avocado" ${currentTheme === 'avocado' ? 'selected' : ''}>Glassy Avocado</option>
-              <option value="futuristic" ${currentTheme === 'futuristic' ? 'selected' : ''}>Futuristic</option>
-              <option value="estuary" ${currentTheme === 'estuary' ? 'selected' : ''}>Estuary (Magical)</option>
-              <option value="classic" ${currentTheme === 'classic' ? 'selected' : ''}>Classic Light</option>
-              <option value="dark" ${currentTheme === 'dark' ? 'selected' : ''}>Dark Theme (OLED)</option>
-            </select>
-
+          <div class="header-actions-container">
             <!-- Teacher Account Button -->
             <button class="account-btn" id="btn-open-account" title="Teacher Account & Settings">
               ${teacherProfile.avatarBase64 
                 ? `<img src="${teacherProfile.avatarBase64}" class="account-avatar" alt="Avatar">`
                 : `<div class="account-avatar">${teacherProfile.fullName ? teacherProfile.fullName.charAt(0).toUpperCase() : 'E'}</div>`
               }
-              <span style="margin-right: 8px;">Account</span>
+              <span class="account-btn-text" style="margin-right: 8px;">Account</span>
             </button>
-            ${deferredPrompt ? `
-            <button class="cyber-btn cyber-btn-primary" id="btn-install-pwa" style="padding: 6px 12px; font-size: 0.8rem; background: var(--accent-green); color: #000; border: none; font-weight: 700;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Install EDENv3
-            </button>
-            ` : ''}
-            <div class="status-pill">
-              <span class="status-dot"></span>
-              <span>PWA Adaptive</span>
-            </div>
           </div>
         </header>
 
@@ -602,6 +581,35 @@ function renderModalContent() {
                     </div>`
                  : `<button type="button" class="cyber-btn cyber-btn-primary" id="btn-open-auth" style="width: 100%;">Sign In to Sync</button>`
                }
+            </div>
+
+            <div style="grid-column: 1 / -1; margin-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 16px;">
+               <div style="font-weight: 700; margin-bottom: 8px; font-size: 0.9rem;">App Settings & Theme</div>
+               <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Customize EDENv3 appearance and install app.</p>
+               
+               <div style="display: flex; flex-direction: column; gap: 10px;">
+                 <select class="theme-selector-pill" id="theme-selector" style="width: 100%;">
+                   <option value="blue-gold" ${currentTheme === 'blue-gold' ? 'selected' : ''}>Blue, Green & Gold</option>
+                   <option value="honeybee" ${currentTheme === 'honeybee' ? 'selected' : ''}>Honeybee</option>
+                   <option value="avocado" ${currentTheme === 'avocado' ? 'selected' : ''}>Glassy Avocado</option>
+                   <option value="futuristic" ${currentTheme === 'futuristic' ? 'selected' : ''}>Futuristic</option>
+                   <option value="estuary" ${currentTheme === 'estuary' ? 'selected' : ''}>Estuary (Magical)</option>
+                   <option value="classic" ${currentTheme === 'classic' ? 'selected' : ''}>Classic Light</option>
+                   <option value="dark" ${currentTheme === 'dark' ? 'selected' : ''}>Dark Theme (OLED)</option>
+                 </select>
+
+                 ${deferredPrompt ? `
+                 <button type="button" class="cyber-btn cyber-btn-primary" id="btn-install-pwa" style="width: 100%; background: var(--accent-green); color: #000; font-weight: 700;">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                   Install EDENv3 App
+                 </button>
+                 ` : `
+                 <div class="status-pill" style="justify-content: center;">
+                   <span class="status-dot"></span>
+                   <span>PWA Adaptive (Installed)</span>
+                 </div>
+                 `}
+               </div>
             </div>
 
             <div style="grid-column: 1 / -1; margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px;">
